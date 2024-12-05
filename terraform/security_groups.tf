@@ -1,5 +1,5 @@
 resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh4"
+  name        = "allow_ssh5"
   description = "Allow SSH inbound traffic"
   vpc_id      = "vpc-0859a6c0d7f723e53" # vpc id da sua conta
 

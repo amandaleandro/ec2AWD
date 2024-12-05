@@ -12,4 +12,5 @@ fi
 # Exibe o IP público obtido
 echo "Deploying to EC2 instance with IP: $EC2_PUBLIC_IP"
 
-# Exec
+# Executa o deploy via SSH
+ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP 'bash -s' < ./scripts/deploy.sh
