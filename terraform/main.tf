@@ -19,33 +19,31 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
-# Criar a instância EC2
 resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0f2ad13ff5f6b6f7c" # AMI Ubuntu 22.04 aws 
+  ami           = "ami-0ac80df6eff0e70b5" # Certifique-se de que a AMI seja válida
   instance_type = "t2.nano"
-  key_name      = aws_key_pair.deployer.key_name # Chave para acesso SSH
+  key_name      = aws_key_pair.deployer.key_name
+  security_groups = [aws_security_group.allow_ssh.name] # Associa o Security Group
 
-  tags = {
-    Name = "terraform-example"
-  }
-
-  # Provisionamento remoto via SSH para instalar Docker
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update",
       "sudo apt-get install -y docker.io",
-      "sudo usermod -aG docker ubuntu",  # Adicionar o usuário ubuntu ao grupo docker
+      "sudo usermod -aG docker ubuntu",
       "sudo systemctl start docker",
       "sudo systemctl enable docker"
     ]
 
-    # Conexão SSH para a instância EC2
     connection {
       type        = "ssh"
-      user        = "ubuntu"  # Usuário correto para a AMI do Ubuntu
+      user        = "ubuntu"
       private_key = tls_private_key.example.private_key_pem
       host        = self.public_ip
     }
+  }
+
+  tags = {
+    Name = "terraform-example"
   }
 }
 
