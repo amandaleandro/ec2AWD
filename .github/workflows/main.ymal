@@ -45,7 +45,7 @@ jobs:
       # Step 7: Fazer o deploy na instância EC2 via SSH
       - name: Deploy to EC2 via SSH
         env:
-          EC2_PUBLIC_IP: ${{ steps.ec2info.outputs.instance_ip }}  # Captura o IP público
+          EC2_PUBLIC_IP=$(terraform output -raw instance_ip)
         run: |
           echo "Deploying to EC2 instance with IP: $EC2_PUBLIC_IP"
           ssh -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP 'bash -s' < ./scripts/deploy.sh
