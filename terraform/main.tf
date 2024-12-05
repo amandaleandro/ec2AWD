@@ -16,7 +16,7 @@ resource "aws_key_pair" "deployer" {
 
 # Criar a instância EC2
 resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0c55b159cbfafe1f0" # AMI padrão
+  ami           = "ami-0f2ad13ff5f6b6f7c" # AMI padrão
   instance_type = "t2.nano"
   key_name      = aws_key_pair.deployer.key_name  # Chave pública para acesso SSH
 
