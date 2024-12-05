@@ -38,14 +38,13 @@ jobs:
 
       # Step 6: Capturar o IP público da instância EC2
       - name: Get EC2 Public IP
-        working-directory: ./terraform
         id: ec2info
+        working-directory: ./terraform
         run: echo "::set-output name=instance_ip::$(terraform output -raw instance_ip)"
 
       # Step 7: Fazer o deploy na instância EC2 via SSH
       - name: Deploy to EC2 via SSH
-        env:
-          EC2_PUBLIC_IP: ${{ steps.ec2info.outputs.instance_ip }}
         run: |
+          EC2_PUBLIC_IP=${{ steps.ec2info.outputs.instance_ip }}
           echo "Deploying to EC2 instance with IP: $EC2_PUBLIC_IP"
           ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP 'bash -s' < ./scripts/deploy.sh
