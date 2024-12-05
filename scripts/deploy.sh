@@ -1,13 +1,16 @@
- steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+#!/bin/bash
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+# Captura o IP da instância EC2 utilizando o output do Terraform
+EC2_PUBLIC_IP=$(terraform output -raw instance_ip)
 
-      - name: Deploy Code via SSH
-        run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ steps.ec2info.outputs.instance_ip }} 'bash -s' < ./scripts/deploy.sh
-  
+# Verifica se o IP foi obtido corretamente
+if [ -z "$EC2_PUBLIC_IP" ]; then
+  echo "Erro: Não foi possível obter o IP público da instância EC2"
+  exit 1
+fi
+
+# Exibe o IP público obtido
+echo "Deploying to EC2 instance with IP: $EC2_PUBLIC_IP"
+
+# Executa o deploy via SSH
+ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP 'bash -s' < ./scripts/deploy.sh
