@@ -10,15 +10,20 @@ resource "tls_private_key" "example" {
 
 # Criar o par de chaves na AWS
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
+  key_name   = "deployer-key${random_string.suffix.result}"
   public_key = tls_private_key.example.public_key_openssh
+}
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
 # Criar a instância EC2
 resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0f2ad13ff5f6b6f7c" # AMI padrão
+  ami           = "ami-0c55b159cbfafe1f0" # Verifique se esta AMI é realmente do Ubuntu
   instance_type = "t2.nano"
-  key_name      = aws_key_pair.deployer.key_name  # Chave pública para acesso SSH
+  key_name      = aws_key_pair.deployer.key_name # Referência à chave pública gerada
 
   tags = {
     Name = "terraform-example"
@@ -37,13 +42,14 @@ resource "aws_instance" "ec2_instance" {
     # Conexão SSH para a instância EC2
     connection {
       type        = "ssh"
-      user        = "ubuntu"  # Usuário padrão do Ubuntu
+      user        = "ubuntu"  # Usuário correto para a AMI do Ubuntu
       private_key = tls_private_key.example.private_key_pem
       host        = self.public_ip
     }
   }
 }
 
+# Output para exibir o IP público da instância
 output "instance_ip" {
   value = aws_instance.ec2_instance.public_ip
 }
