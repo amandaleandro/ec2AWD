@@ -1,0 +1,53 @@
+name: Terraform EC2 and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: "Terraform EC2 Deployment"
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.0.10
+
+    - name: Initialize Terraform
+      working-directory: ./terraform
+      run: terraform init
+
+    - name: Apply Terraform (Create EC2)
+      working-directory: ./terraform
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: terraform apply -auto-approve
+
+    - name: Get EC2 Public IP
+      working-directory: ./terraform
+      id: ec2info
+      run: echo "::set-output name=instance_ip::$(terraform output -raw instance_ip)"
+
+    - name: Deploy to EC2
+      needs: terraform
+      runs-on: ubuntu-latest
+
+      steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy Code via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ steps.ec2info.outputs.instance_ip }} 'bash -s' < ./scripts/deploy.sh

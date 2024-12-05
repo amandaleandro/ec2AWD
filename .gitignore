@@ -1,0 +1,35 @@
+# Arquivos e pastas do Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Arquivos de configuração do editor de código
+.vscode/
+.idea/
+
+# Node.js
+node_modules/
+
+# Dependências de sistemas baseados em Python
+__pycache__
+*.pyc
+
+# Arquivos gerados pela aplicação (por exemplo, build)
+build/
+dist/
+
+# Arquivos de log
+*.log
+
+# Arquivos de credenciais
+*.pem
+*.key
+*.env
+
+# Arquivos temporários do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Docker
+*.dockerfile
+docker-compose.override.yml
