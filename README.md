@@ -101,12 +101,6 @@ O pipeline do **GitHub Actions** (`terraform-deploy.yml`) executa os seguintes p
    - Faz o checkout do código e configura o AWS CLI.
    - Inicializa o Terraform e cria a instância EC2 na AWS.
 
-2. **Captura do IP da instância EC2**:
-   - Após criar a instância, o pipeline captura o **IP público** da instância EC2 usando o output do Terraform.
-
-3. **Deploy na instância EC2**:
-   - Conecta-se à instância via SSH usando o IP capturado e executa o script `deploy.sh` para fazer o deploy da aplicação.
-
 ### Personalização
 
 Se você deseja personalizar o projeto:
@@ -132,5 +126,3 @@ Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICE
 - **Pipeline de Deploy**: Detalha o que o pipeline faz em cada etapa.
 - **Personalização**: Mostra como modificar o código e o script de deploy.
 - **Contribuições e Licença**: Fala sobre como contribuir e a licença do projeto.
-
-Esse README fornece instruções claras e organizadas, facilitando o uso e entendimento do projeto.
