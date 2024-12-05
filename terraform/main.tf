@@ -21,9 +21,9 @@ resource "random_string" "suffix" {
 
 # Criar a instância EC2
 resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0c55b159cbfafe1f0" # Verifique se esta AMI é realmente do Ubuntu
+  ami           = "ami-0f2ad13ff5f6b6f7c" # AMI Ubuntu 22.04 aws 
   instance_type = "t2.nano"
-  key_name      = aws_key_pair.deployer.key_name # Referência à chave pública gerada
+  key_name      = aws_key_pair.deployer.key_name # Chave para acesso SSH
 
   tags = {
     Name = "terraform-example"
