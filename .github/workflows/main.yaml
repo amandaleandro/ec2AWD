@@ -36,12 +36,26 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
-      # Step 6: Obter o IP público da instância EC2 diretamente após o apply
-      - name: Get EC2 Public IP
+      # Opção 1: Usar `terraform output` diretamente (mais simples e recomendada)
+      - name: Get EC2 Public IP with terraform output
         id: ec2_ip
+        working-directory: ./terraform
+        run: |
+          EC2_IP=$(terraform output -raw instance_ip)
+          if [ -z "$EC2_IP" ]; then
+            echo "Erro: Não foi possível encontrar o IP público da instância EC2"
+            exit 1
+          fi
+          echo "EC2_IP=${EC2_IP}"
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+
+      # Opção 2: Verificar e processar o arquivo JSON `state.json` (usando `terraform show`)
+      - name: Get EC2 Public IP using state.json (optional)
+        if: ${{ failure() }}
+        working-directory: ./terraform
         run: |
           terraform show -json > state.json
-  
+          
           # Verificar se o arquivo JSON foi gerado corretamente
           if [ -s state.json ]; then
             echo "Arquivo state.json gerado com sucesso"
@@ -49,6 +63,12 @@ jobs:
             echo "Erro: Arquivo state.json está vazio ou não foi gerado corretamente"
             exit 1
           fi
+
+          # Remover linhas inválidas do início do arquivo (se necessário)
+          sed -i '/^[^{}]/d' state.json
+
+          # Exibir o conteúdo para debug
+          cat state.json
 
           # Processar o JSON e extrair o IP
           EC2_IP=$(cat state.json | jq -r '.values.root_module.resources[] | select(.type=="aws_instance") | .values.public_ip')
@@ -58,14 +78,6 @@ jobs:
           fi
           echo "EC2_IP=${EC2_IP}"
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
-      - name: Show state.json content
-        run: cat state.json
-      - name: Validate JSON
-        run: |
-            if ! jq empty state.json; then
-            echo "Erro: O arquivo state.json não é um JSON válido"
-            exit 1
-            fi
 
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
