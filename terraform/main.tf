@@ -100,37 +100,19 @@ resource "aws_instance" "ec2_instance" {
   associate_public_ip_address = true
   iam_instance_profile    = aws_iam_instance_profile.ec2_instance_profile.name
 
-  # Instalar dependências e copiar arquivos do S3
-  user_data = <<-EOF
-              #!/bin/bash
-              echo "Starting instance setup..."
-
-              # Update and install required packages
-              apt-get update -y
-              apt-get install -y awscli python3-pip
-
-              # Verify AWS CLI installation
-              echo "AWS CLI version:"
-              aws --version
-
-              # Copy files from S3 bucket
-              mkdir -p /home/ubuntu/app
-              aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt
-              aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py
-              aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/Dockerfile /home/ubuntu/app/Dockerfile
-
-              echo "Instance setup complete."
-              EOF
-
-  # Provisionamento remoto para copiar os arquivos após a instância ser criada
+  # Provisionamento remoto com curl ou wget
   provisioner "remote-exec" {
     inline = [
-      "echo 'Verifying AWS CLI installation'",
-      "aws --version",  # Verifique a instalação da AWS CLI
-      "echo 'Copying files from S3 to the instance'",
-      "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt",
-      "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py",
-      "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/Dockerfile /home/ubuntu/app/Dockerfile"
+      "echo 'Atualizando pacotes...'",
+      "sudo apt-get update -y",
+
+      "echo 'Instalando curl...'",
+      "sudo apt-get install -y curl",
+
+      "echo 'Baixando arquivos do S3...'",
+      "curl -o /home/ubuntu/app/requirements.txt https://s3.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/requirements.txt",
+      "curl -o /home/ubuntu/app/app.py https://s3.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/app.py",
+      "curl -o /home/ubuntu/app/Dockerfile https://s3.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/Dockerfile"
     ]
 
     connection {
