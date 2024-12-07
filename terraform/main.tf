@@ -26,6 +26,12 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
+# Criar o perfil IAM (IAM Instance Profile)
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
+  name = "ec2_instance_profile_${random_string.suffix.result}"
+  role = aws_iam_role.ec2_role.name
+}
+
 # Criar o bucket S3 com nome único
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "meu-bucket-terraform-unique-${random_string.suffix.result}"
@@ -92,7 +98,7 @@ resource "aws_instance" "ec2_instance" {
   key_name               = aws_key_pair.deployer.key_name
   security_groups        = [aws_security_group.allow_ssh.name]
   associate_public_ip_address = true
-  iam_instance_profile    = aws_iam_role.ec2_role.name  # Atribuindo o IAM role à instância
+  iam_instance_profile    = aws_iam_instance_profile.ec2_instance_profile.name  # Associando o IAM Instance Profile à instância
 
   # Instalar dependências e copiar arquivos do S3
   user_data = <<-EOF
