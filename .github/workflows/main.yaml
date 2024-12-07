@@ -36,15 +36,26 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
-      # Step 6: Obter o IP público da instância EC2
+      # Step 6: Atualizar o estado do Terraform e obter o IP público da instância EC2
       - name: Get EC2 Public IP
         id: ec2_ip
         run: |
+          terraform refresh  # Atualiza o estado da instância
           echo "EC2_IP=$(terraform output -raw instance_ip)" >> $GITHUB_ENV
-      
+        continue-on-error: true  # Permite continuar mesmo que o IP não seja obtido
+
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
         run: |
+          # Aguarda até a variável EC2_IP ser definida (se não for, o script falha)
+          if [ -z "$EC2_IP" ]; then
+            echo "EC2 IP não encontrado!"
+            exit 1
+          fi
+
+          echo "Deploying app to EC2 at $EC2_IP"
+          
+          # Conectar via SSH e rodar comandos na instância
           ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@${{ env.EC2_IP }} << 'EOF'
             # Passos para o deploy (instalar Docker, rodar a aplicação)
             sudo apt-get update
