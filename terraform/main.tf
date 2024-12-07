@@ -5,18 +5,16 @@ provider "aws" {
 resource "aws_iam_role" "ec2_role" {
   name               = "ec2_role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action    = "sts:AssumeRole"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-        Effect    = "Allow"
-        Sid       = ""
-      },
-    ]
-  })
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "iam:CreateRole",
+      "Resource": "*"
+    }
+  ]
+}
+)
 }
 
 resource "aws_s3_bucket" "my_bucket" {
@@ -82,11 +80,17 @@ resource "aws_security_group" "allow_ssh" {
 
 # Criar Instância EC2
 resource "aws_instance" "ec2_instance" {
-  ami              = "ami-0ac80df6eff0e70b5"
-  instance_type    = "t2.nano"
-  key_name         = aws_key_pair.deployer.key_name
-  security_groups  = [aws_security_group.allow_ssh.name]
+  ami                    = "ami-0ac80df6eff0e70b5"
+  instance_type          = "t2.nano"
+  key_name               = aws_key_pair.deployer.key_name
+  security_groups        = [aws_security_group.allow_ssh.name]
   associate_public_ip_address = true
+
+  user_data = <<-EOF
+              #!/bin/bash
+              apt-get update
+              apt-get install -y awscli
+              EOF
 
   provisioner "remote-exec" {
     inline = [
