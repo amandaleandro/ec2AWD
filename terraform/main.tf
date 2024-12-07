@@ -17,6 +17,78 @@ resource "aws_iam_role" "ec2_role" {
     ]
   })
 }
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "meu-bucket-terraform-unique"
+  acl    = "private"
+}
+resource "aws_s3_bucket_object" "requirements_txt" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "requirements.txt"
+  source = "path_to_local_file/requirements.txt"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "app_py" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "app.py"
+  source = "path_to_local_file/app.py"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "requirements_txt" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "requirements.txt"
+  source = "path_to_local_file/requirements.txt"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "app_py" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "app.py"
+  source = "path_to_local_file/app.py"  # Caminho para o arquivo local
+  acl    = "private"
+}
+resource "aws_s3_bucket_object" "requirements_txt" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "requirements.txt"
+  source = "path_to_local_file/requirements.txt"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "app_py" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "app.py"
+  source = "path_to_local_file/app.py"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "requirements_txt" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "requirements.txt"
+  source = "/src/requirements.txt"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "requirements_txt" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "requirements.txt"
+  source = "/src/requirements.txt"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "app_py" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "app.py"
+  source = "/src/app.py"  # Caminho para o arquivo local
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_object" "dockerfile" {
+  bucket = aws_s3_bucket.my_bucket.bucket
+  key    = "Dockerfile"
+  source = "path_to_local_file/Dockerfile"  # Caminho para o arquivo local
+  acl    = "private"
+}
 
 # Gerar a chave privada e pública com Terraform
 resource "tls_private_key" "example" {
@@ -61,13 +133,11 @@ resource "aws_instance" "ec2_instance" {
   security_groups  = [aws_security_group.allow_ssh.name]
   associate_public_ip_address = true
 
-  provisioner "remote-exec" {
+   provisioner "remote-exec" {
     inline = [
-      "echo '${file("src/requirements.txt")}' > /home/ubuntu/app/requirements.txt",
-      "echo '${file("src/app.py")}' > /home/ubuntu/app/app.py",
-      "echo '${file("src/Dockerfile")}' > /home/ubuntu/app/Dockerfile",
-      "sudo docker build -t my-python-app .",
-      "sudo docker run -d -p 5000:5000 my-python-app"
+      "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt",
+      "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py",
+      "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/Dockerfile /home/ubuntu/app/Dockerfile"
     ]
     
     connection {
@@ -83,15 +153,3 @@ resource "aws_instance" "ec2_instance" {
   }
 }
 
-# Adicionar templates
-data "template_file" "requirements_txt" {
-  template = file("${path.module}/src/requirements.txt")
-}
-
-data "template_file" "app_py" {
-  template = file("${path.module}/src/app.py")
-}
-
-data "template_file" "dockerfile" {
-  template = file("${path.module}/src/Dockerfile")
-}
