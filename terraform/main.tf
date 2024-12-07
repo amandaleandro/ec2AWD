@@ -130,3 +130,6 @@ resource "aws_instance" "ec2_instance" {
     Name = "terraform-deployer"
   }
 }
+output "instance_ip" {
+  value = aws_instance.my_instance.public_ip
+}
