@@ -1,6 +1,12 @@
-resource "aws_security_group" "allow_ssh28" {
-  name        = "allow_ssh28"
-  description = "Allow SSH inbound traffic"
+variable "sg_name_prefix" {
+  description = "Prefix for the dynamic security group name"
+  type        = string
+  default     = "dynamic-sg"
+}
+
+resource "aws_security_group" "dynamic_sg" {
+  name        = "${var.sg_name_prefix}-${timestamp()}"
+  description = "Dynamic Security Group based on allowed ports"
   vpc_id      = "vpc-0859a6c0d7f723e53" # vpc id da sua conta
 
   ingress {
