@@ -103,27 +103,36 @@ resource "aws_instance" "ec2_instance" {
   # Instalar dependências e copiar arquivos do S3
   user_data = <<-EOF
               #!/bin/bash
-              echo "Updating and installing required packages..."
+              echo "Starting instance setup..."
+
+              # Update and install required packages
               apt-get update -y
               apt-get install -y awscli python3-pip
-              echo "AWS CLI and pip installed. Proceeding to copy files from S3."
+
+              # Verify AWS CLI installation
+              echo "AWS CLI version:"
+              aws --version
+
+              # Copy files from S3 bucket
               mkdir -p /home/ubuntu/app
               aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt
               aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py
               aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/Dockerfile /home/ubuntu/app/Dockerfile
+
+              echo "Instance setup complete."
               EOF
 
   # Provisionamento remoto para copiar os arquivos após a instância ser criada
   provisioner "remote-exec" {
     inline = [
-      "echo 'Checking AWS CLI version'",
-      "aws --version",
-      "echo 'Copying requirements.txt from S3 to instance'",
+      "echo 'Verifying AWS CLI installation'",
+      "aws --version",  # Verifique a instalação da AWS CLI
+      "echo 'Copying files from S3 to the instance'",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/Dockerfile /home/ubuntu/app/Dockerfile"
     ]
-    
+
     connection {
       type        = "ssh"
       user        = "ubuntu"
