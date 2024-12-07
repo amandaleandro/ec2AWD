@@ -58,6 +58,14 @@ jobs:
           fi
           echo "EC2_IP=${EC2_IP}"
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+      - name: Show state.json content
+        run: cat state.json
+      - name: Validate JSON
+        run: |
+            if ! jq empty state.json; then
+            echo "Erro: O arquivo state.json não é um JSON válido"
+            exit 1
+            fi
 
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
