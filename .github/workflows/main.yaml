@@ -39,12 +39,13 @@ jobs:
       # Step 6: Obter o IP público da instância EC2
       - name: Get EC2 Public IP
         id: ec2_ip
-        run: echo "::set-output name=ec2_ip::$(terraform output -raw instance_ip)"
-
-      # Step 7: Copiar o script de deploy para a instância EC2 e executar via SSH
-      - name: Deploy Application to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_PRIVATE_KEY }} ubuntu@${{ steps.ec2_ip.outputs.ec2_ip }} << 'EOF'
+          echo "EC2_IP=$(terraform output -raw instance_ip)" >> $GITHUB_ENV
+      
+      # Step 7: Deploy Python app na instância EC2
+      - name: Deploy Python app on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@${{ env.EC2_IP }} << 'EOF'
             # Passos para o deploy (instalar Docker, rodar a aplicação)
             sudo apt-get update
             sudo apt-get install -y docker.io
