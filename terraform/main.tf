@@ -1,6 +1,7 @@
 provider "aws" {
   region = "us-east-1"
 }
+
 resource "aws_iam_role" "ec2_role" {
   name               = "ec2_role"
   assume_role_policy = jsonencode({
@@ -17,23 +18,11 @@ resource "aws_iam_role" "ec2_role" {
     ]
   })
 }
+
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "meu-bucket-terraform-unique"
   acl    = "private"
 }
-resource "aws_s3_bucket_object" "requirements_txt" {
-  bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "requirements.txt"
-  source = "path_to_local_file/requirements.txt"  # Caminho para o arquivo local
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_object" "app_py" {
-  bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "app.py"
-  source = "path_to_local_file/app.py"  # Caminho para o arquivo local
-  acl    = "private"
-}
 
 resource "aws_s3_bucket_object" "requirements_txt" {
   bucket = aws_s3_bucket.my_bucket.bucket
@@ -46,40 +35,6 @@ resource "aws_s3_bucket_object" "app_py" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "app.py"
   source = "path_to_local_file/app.py"  # Caminho para o arquivo local
-  acl    = "private"
-}
-resource "aws_s3_bucket_object" "requirements_txt" {
-  bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "requirements.txt"
-  source = "path_to_local_file/requirements.txt"  # Caminho para o arquivo local
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_object" "app_py" {
-  bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "app.py"
-  source = "path_to_local_file/app.py"  # Caminho para o arquivo local
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_object" "requirements_txt" {
-  bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "requirements.txt"
-  source = "/src/requirements.txt"  # Caminho para o arquivo local
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_object" "requirements_txt" {
-  bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "requirements.txt"
-  source = "/src/requirements.txt"  # Caminho para o arquivo local
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_object" "app_py" {
-  bucket = aws_s3_bucket.my_bucket.bucket
-  key    = "app.py"
-  source = "/src/app.py"  # Caminho para o arquivo local
   acl    = "private"
 }
 
@@ -133,7 +88,7 @@ resource "aws_instance" "ec2_instance" {
   security_groups  = [aws_security_group.allow_ssh.name]
   associate_public_ip_address = true
 
-   provisioner "remote-exec" {
+  provisioner "remote-exec" {
     inline = [
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py",
@@ -152,4 +107,3 @@ resource "aws_instance" "ec2_instance" {
     Name = "terraform-deployer"
   }
 }
-
