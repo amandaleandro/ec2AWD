@@ -20,7 +20,7 @@ resource "random_string" "suffix" {
 }
 
 resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0ac80df6eff0e70b5" # Certifique-se de que a AMI seja válida
+  ami           = "ami-0ac80df6eff0e70b5" 
   instance_type = "t2.nano"
   key_name      = aws_key_pair.deployer.key_name
   security_groups = [aws_security_group.allow_ssh.name] # Associa o Security Group
