@@ -16,11 +16,17 @@ resource "aws_iam_role" "ec2_role" {
 }
 )
 }
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "meu-bucket-terraform-unique"
+  bucket = "meu-bucket-terraform-unique-${random_string.suffix.result}"
   acl    = "private"
 }
+
 
 resource "aws_s3_bucket_object" "requirements_txt" {
   bucket = aws_s3_bucket.my_bucket.bucket
