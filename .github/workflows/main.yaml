@@ -36,13 +36,12 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
-      # Step 6: Atualizar o estado do Terraform e obter o IP público da instância EC2
+      # Step 6: Obter o IP público da instância EC2 diretamente após o apply
       - name: Get EC2 Public IP
         id: ec2_ip
         run: |
-          terraform refresh  # Atualiza o estado da instância após o apply
-          EC2_IP=$(terraform output -raw instance_ip)
-          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+          # Obter o IP da instância diretamente após o apply
+          echo "EC2_IP=$(terraform output -raw instance_ip)" >> $GITHUB_ENV
 
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
