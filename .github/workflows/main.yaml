@@ -42,10 +42,11 @@ jobs:
         run: |
           # Mostrar o estado da instância e extrair o IP da instância EC2
           terraform show -json > state.json
+          cat state.json  # Visualizar o conteúdo do arquivo JSON para depuração
           EC2_IP=$(cat state.json | jq -r '.values.root_module.resources[] | select(.type=="aws_instance") | .values.public_ip')
           echo "EC2_IP=${EC2_IP}"
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
-          
+
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
         run: |
