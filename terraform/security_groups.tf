@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 resource "aws_security_group" "allow_ssh" {
 
+=======
+resource "aws_security_group" "allow_ssh15" {
+>>>>>>> 75f1e14 (ajustando o novo security group)
   name        = "allow_ssh15"
   description = "Allow SSH inbound traffic"
   vpc_id      = "vpc-0859a6c0d7f723e53" # vpc id da sua conta
