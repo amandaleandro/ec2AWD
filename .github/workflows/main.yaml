@@ -45,13 +45,12 @@ jobs:
             echo "Erro: Não foi possível encontrar o IP público da instância EC2"
             exit 1
           fi
-          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV  # Definindo como variável de ambiente
+          echo "::set-output name=ec2_ip::$EC2_IP"  # Definindo o output do job
 
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
-        env:
-          EC2_IP: ${{ env.EC2_IP }}  # Usando variável de ambiente diretamente
         run: |
+          EC2_IP=${{ steps.ec2_ip.outputs.ec2_ip }}  # Usando o output do job anterior
           if [ -z "$EC2_IP" ]; then
             echo "EC2 IP não encontrado!"
             exit 1
