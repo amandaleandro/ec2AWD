@@ -51,9 +51,10 @@ jobs:
       - name: Deploy Python app on EC2
         run: |
           # Certifique-se de que o IP da instância foi extraído corretamente
-          echo "Deploying app to EC2 at ${{ steps.ec2_ip.outputs.ec2_ip }}"
+          EC2_IP=${{ steps.ec2_ip.outputs.ec2_ip }}
+          echo "Deploying app to EC2 at $EC2_IP"
           
-          ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@${{ steps.ec2_ip.outputs.ec2_ip }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@$EC2_IP << 'EOF'
             echo "Iniciando deploy..."
             sudo apt-get update
             sudo apt-get install -y docker.io
