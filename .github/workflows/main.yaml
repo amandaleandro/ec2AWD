@@ -45,24 +45,21 @@ jobs:
             echo "Erro: Não foi possível encontrar o IP público da instância EC2"
             exit 1
           fi
-          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV  # Definindo como variável de ambiente
+          echo "::set-output name=ec2_ip::$EC2_IP"  # Definindo o output do job
 
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
         run: |
-          if [ -z "$EC2_IP" ]; then
-            echo "Erro: Não foi possível encontrar o IP público da instância EC2"
-            exit 1
-          fi
-
-          echo "Deploying app to EC2 at $EC2_IP"
-
-          # Conectar via SSH e rodar comandos na instância
-          ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@${{ env.EC2_IP }} << 'EOF'
-            # Passos para o deploy (instalar Docker, rodar a aplicação)
+          # Certifique-se de que o IP da instância foi extraído corretamente
+          echo "Deploying app to EC2 at ${{ steps.ec2_ip.outputs.ec2_ip }}"
+          
+          ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@${{ steps.ec2_ip.outputs.ec2_ip }} << 'EOF'
+            echo "Iniciando deploy..."
             sudo apt-get update
             sudo apt-get install -y docker.io
+            sudo docker --version
             cd /home/ubuntu/app
             sudo docker build -t my-python-app .
             sudo docker run -d -p 5000:5000 my-python-app
+            echo "Deploy concluído"
           EOF
