@@ -40,7 +40,7 @@ jobs:
       - name: Get EC2 Public IP
         id: ec2_ip
         run: |
-          terraform refresh  # Atualiza o estado da instância
+          terraform refresh  # Atualiza o estado da instância após o apply
           echo "EC2_IP=$(terraform output -raw instance_ip)" >> $GITHUB_ENV
         continue-on-error: true  # Permite continuar mesmo que o IP não seja obtido
 
