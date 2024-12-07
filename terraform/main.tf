@@ -98,13 +98,15 @@ resource "aws_instance" "ec2_instance" {
   key_name               = aws_key_pair.deployer.key_name
   security_groups        = [aws_security_group.allow_ssh.name]
   associate_public_ip_address = true
-  iam_instance_profile    = aws_iam_instance_profile.ec2_instance_profile.name  # Associando o IAM Instance Profile à instância
+  iam_instance_profile    = aws_iam_instance_profile.ec2_instance_profile.name
 
   # Instalar dependências e copiar arquivos do S3
   user_data = <<-EOF
               #!/bin/bash
-              apt-get update
+              echo "Updating and installing required packages..."
+              apt-get update -y
               apt-get install -y awscli python3-pip
+              echo "AWS CLI and pip installed. Proceeding to copy files from S3."
               mkdir -p /home/ubuntu/app
               aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt
               aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py
@@ -114,6 +116,8 @@ resource "aws_instance" "ec2_instance" {
   # Provisionamento remoto para copiar os arquivos após a instância ser criada
   provisioner "remote-exec" {
     inline = [
+      "echo 'Checking AWS CLI version'",
+      "aws --version",
       "echo 'Copying requirements.txt from S3 to instance'",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py",
