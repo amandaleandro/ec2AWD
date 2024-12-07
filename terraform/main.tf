@@ -100,7 +100,7 @@ resource "aws_instance" "ec2_instance" {
   associate_public_ip_address = true
   iam_instance_profile    = aws_iam_instance_profile.ec2_instance_profile.name
 
-  # Provisionamento remoto com curl ou wget
+  # Provisionamento remoto com curl
   provisioner "remote-exec" {
     inline = [
       "echo 'Atualizando pacotes...'",
@@ -108,6 +108,9 @@ resource "aws_instance" "ec2_instance" {
 
       "echo 'Instalando curl...'",
       "sudo apt-get install -y curl",
+
+      "echo 'Criando diretório /home/ubuntu/app...'",
+      "mkdir -p /home/ubuntu/app",
 
       "echo 'Baixando arquivos do S3...'",
       "curl -o /home/ubuntu/app/requirements.txt https://s3.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/requirements.txt",
