@@ -2,26 +2,25 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_iam_role" "ec2_role" {
-  name               = "ec2_role"
-  assume_role_policy = jsonencode({
-    "Version" = "2012-10-17",
-    "Statement" = [
-      {
-        "Effect"    = "Allow"
-        "Action"    = "sts:AssumeRole"
-        "Principal" = {
-          "Service" = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
 resource "random_string" "suffix" {
   length  = 8
   special = false
   upper   = false
+}
+
+# Atualizando o nome do role para garantir que seja único
+resource "aws_iam_role" "ec2_role" {
+  name               = "ec2_role_${random_string.suffix.result}"
+  assume_role_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "iam:CreateRole",
+        "Resource": "*"
+      }
+    ]
+  })
 }
 
 resource "aws_s3_bucket" "my_bucket" {
@@ -29,24 +28,25 @@ resource "aws_s3_bucket" "my_bucket" {
   acl    = "private"
 }
 
+# Certifique-se de que os caminhos para os arquivos estão corretos
 resource "aws_s3_bucket_object" "requirements_txt" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "requirements.txt"
-  source = "./src/requirements.txt"  
+  source = "./src/requirements.txt"  # Caminho correto para o arquivo
   acl    = "private"
 }
 
 resource "aws_s3_bucket_object" "app_py" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "app.py"
-  source = "./src/app.py"  
+  source = "./src/app.py"  # Caminho correto para o arquivo
   acl    = "private"
 }
 
 resource "aws_s3_bucket_object" "dockerfile" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "Dockerfile"
-  source = "./src/app.py"  
+  source = "./src/Dockerfile"  # Caminho correto para o arquivo
   acl    = "private"
 }
 
@@ -56,7 +56,7 @@ resource "tls_private_key" "example" {
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key${random_string.suffix.result}"
+  key_name   = "deployer-key-${random_string.suffix.result}"
   public_key = tls_private_key.example.public_key_openssh
 }
 
@@ -92,6 +92,7 @@ resource "aws_instance" "ec2_instance" {
 
   provisioner "remote-exec" {
     inline = [
+      "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/Dockerfile /home/ubuntu/app/Dockerfile"
     ]
