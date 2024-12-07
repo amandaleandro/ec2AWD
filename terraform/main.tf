@@ -63,9 +63,9 @@ resource "aws_instance" "ec2_instance" {
 
   provisioner "remote-exec" {
     inline = [
-      "echo '${template_file.requirements_txt.rendered}' > /home/ubuntu/app/requirements.txt",
-      "echo '${template_file.app_py.rendered}' > /home/ubuntu/app/app.py",
-      "echo '${template_file.dockerfile.rendered}' > /home/ubuntu/app/Dockerfile",
+      "echo '${file("src/requirements.txt")}' > /home/ubuntu/app/requirements.txt",
+      "echo '${file("src/app.py")}' > /home/ubuntu/app/app.py",
+      "echo '${file("src/Dockerfile")}' > /home/ubuntu/app/Dockerfile",
       "sudo docker build -t my-python-app .",
       "sudo docker run -d -p 5000:5000 my-python-app"
     ]
