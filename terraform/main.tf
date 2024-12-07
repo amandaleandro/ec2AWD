@@ -2,6 +2,13 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# Gerar um sufixo aleatório para garantir unicidade no nome de recursos
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 # Criar o role IAM com a política de confiança adequada
 resource "aws_iam_role" "ec2_role" {
   name               = "ec2_role_${random_string.suffix.result}"
@@ -17,13 +24,6 @@ resource "aws_iam_role" "ec2_role" {
       }
     ]
   })
-}
-
-# Gerar um sufixo aleatório para garantir unicidade no nome de recursos
-resource "random_string" "suffix" {
-  length  = 8
-  special = false
-  upper   = false
 }
 
 # Criar o bucket S3 com nome único
@@ -92,6 +92,7 @@ resource "aws_instance" "ec2_instance" {
   key_name               = aws_key_pair.deployer.key_name
   security_groups        = [aws_security_group.allow_ssh.name]
   associate_public_ip_address = true
+  iam_instance_profile    = aws_iam_role.ec2_role.name  # Atribuindo o IAM role à instância
 
   # Instalar dependências e copiar arquivos do S3
   user_data = <<-EOF
@@ -107,6 +108,7 @@ resource "aws_instance" "ec2_instance" {
   # Provisionamento remoto para copiar os arquivos após a instância ser criada
   provisioner "remote-exec" {
     inline = [
+      "echo 'Copying requirements.txt from S3 to instance'",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/requirements.txt /home/ubuntu/app/requirements.txt",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/app.py /home/ubuntu/app/app.py",
       "aws s3 cp s3://${aws_s3_bucket.my_bucket.bucket}/Dockerfile /home/ubuntu/app/Dockerfile"
