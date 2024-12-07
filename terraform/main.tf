@@ -36,7 +36,7 @@ resource "aws_s3_bucket" "my_bucket" {
 resource "aws_s3_bucket_object" "requirements_txt" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "requirements.txt"
-  source = "src/requirements.txt"  # Caminho correto para o arquivo
+  source = "../src/requirements.txt"  # Caminho correto para o arquivo
   acl    = "private"
 }
 
@@ -44,7 +44,7 @@ resource "aws_s3_bucket_object" "requirements_txt" {
 resource "aws_s3_bucket_object" "app_py" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "app.py"
-  source = "src/app.py"  # Caminho correto para o arquivo
+  source = "../src/app.py"  # Caminho correto para o arquivo
   acl    = "private"
 }
 
@@ -52,7 +52,7 @@ resource "aws_s3_bucket_object" "app_py" {
 resource "aws_s3_bucket_object" "dockerfile" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "Dockerfile"
-  source = "src/Dockerfile"  # Caminho correto para o arquivo
+  source = "../src/Dockerfile"  # Caminho correto para o arquivo
   acl    = "private"
 }
 
