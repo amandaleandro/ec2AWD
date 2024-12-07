@@ -41,13 +41,12 @@ jobs:
         id: ec2_ip
         run: |
           terraform refresh  # Atualiza o estado da instância após o apply
-          echo "EC2_IP=$(terraform output -raw instance_ip)" >> $GITHUB_ENV
-        continue-on-error: true  # Permite continuar mesmo que o IP não seja obtido
+          EC2_IP=$(terraform output -raw instance_ip)
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
 
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
         run: |
-          # Aguarda até a variável EC2_IP ser definida (se não for, o script falha)
           if [ -z "$EC2_IP" ]; then
             echo "EC2 IP não encontrado!"
             exit 1
