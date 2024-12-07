@@ -32,21 +32,21 @@ resource "aws_s3_bucket" "my_bucket" {
 resource "aws_s3_bucket_object" "requirements_txt" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "requirements.txt"
-  source = "./requirements.txt"  
+  source = "./src/requirements.txt"  
   acl    = "private"
 }
 
 resource "aws_s3_bucket_object" "app_py" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "app.py"
-  source = "./app.py"  
+  source = "./src/app.py"  
   acl    = "private"
 }
 
 resource "aws_s3_bucket_object" "dockerfile" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "Dockerfile"
-  source = "./Dockerfile"  
+  source = "./src/app.py"  
   acl    = "private"
 }
 
