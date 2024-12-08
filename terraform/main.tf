@@ -28,16 +28,17 @@ resource "aws_iam_role" "ec2_role" {
 
 # Criar a política para acessar o bucket S3
 resource "aws_iam_policy" "s3_access_policy" {
-  name        = "s3_access_policy"
-  description = "Policy granting access to S3 bucket"
-  policy      = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+  name        = "s3_access_policy_${random_string.policy_suffix.result}"  # Nome único para a política
+  description = "S3 access policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
-        "Effect": "Allow",
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::${aws_s3_bucket.my_bucket.bucket}/*"
-      }
+        Action   = "s3:GetObject"
+        Effect   = "Allow"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.my_bucket.bucket}/*"
+      },
     ]
   })
 }
