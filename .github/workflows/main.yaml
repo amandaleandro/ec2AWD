@@ -43,8 +43,6 @@ jobs:
         run: |
           EC2_IP=$(terraform output -raw instance_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
-          echo "::set-output name=EC2_IP::$EC2_IP"
-        shell: bash
 
       # Step 7: Configurar SSH para conexão na EC2
       - name: Setup SSH Key
@@ -55,12 +53,12 @@ jobs:
       # Step 8: Copiar arquivos da aplicação para a EC2
       - name: Copy files to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i ./ec2-key.pem -r ./src/ ubuntu@${{ steps.get_ip.outputs.EC2_IP }}:/home/ubuntu/app/
+          scp -o StrictHostKeyChecking=no -i ./ec2-key.pem -r ./src/ ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app/
 
       # Step 9: Executar o setup na EC2 e rodar a aplicação
       - name: Run setup on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i ./ec2-key.pem ubuntu@${{ steps.get_ip.outputs.EC2_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ./ec2-key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
             echo "Instalando dependências..."
             sudo apt-get update
             sudo apt-get install -y python3 python3-pip docker.io
