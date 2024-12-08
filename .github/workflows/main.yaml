@@ -41,7 +41,7 @@ jobs:
         id: get_ip
         working-directory: ./terraform
         run: |
-          EC2_IP=$(terraform output -raw instance_ip)
+          EC2_IP=$(terraform output -raw instance_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
 
       # Step 7: Configurar SSH para conexão na EC2
