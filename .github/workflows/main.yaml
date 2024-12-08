@@ -44,7 +44,24 @@ jobs:
           EC2_IP=$(terraform output -raw instance_ip | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
           echo "EC2 IP: $EC2_IP"
           if [ -z "$EC2_IP" ]; then
-          echo "Erro: Não foi possível encontrar o IP público da instância EC2"
-          exit 1
+            echo "Erro: Não foi possível encontrar o IP público da instância EC2"
+            exit 1
           fi
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+
+      # Step 7: Deploy Python app on EC2
+      - name: Deploy Python app on EC2
+        run: |
+          echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
+          ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@${{ env.EC2_IP }} << 'EOF'
+            echo "Iniciando deploy..."
+            sudo apt-get update
+            sudo apt-get install -y docker.io
+            sudo docker --version
+            cd /home/ubuntu/app
+            sudo docker build -t my-python-app .
+            sudo docker run -d -p 5000:5000 my-python-app
+            echo "Deploy concluído"
+          EOF
+        env:
+          EC2_IP: ${{ steps.ec2_ip.outputs.EC2_IP }}  # Referenciando o output da etapa anterior
