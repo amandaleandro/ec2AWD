@@ -55,12 +55,13 @@ jobs:
           echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
+      # Passo para fazer o deploy no EC2
       - name: Deploy Python app on EC2
         run: |
-          echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
-          
+          echo "Conectando no EC2 com o IP: ${{ steps.ec2_ip.outputs.ip }}"
+        
           # Conectar via SSH usando a chave privada
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ steps.ec2_ip.outputs.ip }} << 'EOF'
             echo "Iniciando deploy..."
             sudo apt-get update
             sudo apt-get install -y docker.io
@@ -71,6 +72,6 @@ jobs:
             echo "Deploy concluído"
           EOF
 
-      # Limpar a chave privada após o uso
+      # Limpeza da chave privada
       - name: Clean up private key
         run: rm -f private_key.pem
