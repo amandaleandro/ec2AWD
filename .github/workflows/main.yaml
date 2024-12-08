@@ -47,10 +47,13 @@ jobs:
             echo "Erro: Não foi possível encontrar o IP público da instância EC2"
             exit 1
           fi
-          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV  # Armazena o IP na variável de ambiente para uso posterior
+          echo "::set-output name=EC2_IP::$EC2_IP"  # Armazena o IP como uma saída do step
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV  # Também salva no ambiente para uso posterior
 
       # Step 7: Deploy Python app on EC2
       - name: Deploy Python app on EC2
+        env:
+          EC2_IP: ${{ steps.ec2_ip.outputs.EC2_IP }}  # Referencia o IP do step anterior
         run: |
           ssh -o StrictHostKeyChecking=no -i "${{ secrets.EC2_PRIVATE_KEY }}" ubuntu@${{ env.EC2_IP }} << 'EOF'
             echo "Iniciando deploy..."
