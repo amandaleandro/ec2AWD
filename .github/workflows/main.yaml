@@ -52,9 +52,9 @@ jobs:
       - name: Deploy Python app on EC2
         run: |
             echo "Conectando no EC2 com o IP: ${{ steps.ec2_ip.outputs.ip }}"
-        
-            # Salvar a chave privada em um arquivo temporário
-            echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
+            
+            # Decodificar a chave privada e salvar em um arquivo temporário
+            echo "${{ secrets.EC2_PRIVATE_KEY_BASE64 }}" | base64 --decode > private_key.pem
             chmod 600 private_key.pem  # Garantir permissões adequadas
         
             # Realizar a conexão SSH com a chave privada
