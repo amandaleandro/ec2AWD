@@ -49,16 +49,17 @@ jobs:
           fi
           echo "::set-output name=ip::${EC2_IP}"  # Define o IP como output da etapa
 
-      - name: Deploy Python app on EC2
+      - name: Deploy Python app on EC2 using EC2 Instance Connect
         run: |
-            echo "Conectando no EC2 com o IP: ${{ steps.ec2_ip.outputs.ip }}"
-            
-            # Decodificar a chave privada e salvar em um arquivo temporário
-            echo "${{ secrets.EC2_PRIVATE_KEY_BASE64 }}" | base64 --decode > private_key.pem
-            chmod 600 private_key.pem  # Garantir permissões adequadas
-        
-            # Realizar a conexão SSH com a chave privada
-            ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ steps.ec2_ip.outputs.ip }} << 'EOF'
+            echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
+            aws ec2-instance-connect send-ssh-public-key \
+              --region us-east-1 \
+              --instance-id ${{ steps.ec2_ip.outputs.instance_id }} \
+              --availability-zone us-east-1a \
+              --instance-os-user ubuntu \
+              --ssh-public-key file://~/.ssh/id_rsa.pub
+  
+            ssh -o StrictHostKeyChecking=no ubuntu@${{ env.EC2_IP }} << 'EOF'
               echo "Iniciando deploy..."
               sudo apt-get update
               sudo apt-get install -y docker.io
@@ -68,7 +69,3 @@ jobs:
               sudo docker run -d -p 5000:5000 my-python-app
               echo "Deploy concluído"
             EOF
-        
-            # Limpar o arquivo da chave privada
-            rm private_key.pem
-        
