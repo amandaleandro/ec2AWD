@@ -38,16 +38,14 @@ jobs:
 
       # Step 6: Obter o IP público da instância EC2 e gravar em um arquivo temporário
       - name: Get EC2 Public IP
-        id: get_ip
+        id: ec2_ip
         run: |
-            EC2_IP=$(terraform output -raw instance_ip)
-            if [[ -z "$EC2_IP" ]]; then
-            echo "Erro: IP da instância EC2 não encontrado"
-              exit 1
-              fi
-              echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
-    
-
+          EC2_IP=$(terraform output -raw instance_ip)
+          if [ -z "$EC2_IP" ]; then
+            echo "Erro: Não foi possível encontrar o IP público da instância EC2"
+            exit 1
+          fi
+          echo "::set-output name=ec2_ip::$EC2_IP" 
       # Step 7: Ler o IP da instância EC2 do arquivo
       - name: Read EC2 IP
         id: read_ip
