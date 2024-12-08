@@ -37,13 +37,17 @@ jobs:
         run: terraform apply -auto-approve
       
       # Step 6: Obter o IP público da instância EC2
-      - name: Get EC2 instance IP
-        id: ec2_ip
+      - name: Get EC2 Public IP
+        id: get_ip
+        working-directory: ./terraform
         run: |
-          IP=$(terraform output -raw instance_ip)
-          echo "EC2 IP: $IP"
-          echo "EC2_IP=$IP" >> $GITHUB_ENV
-  
+          EC2_IP=$(terraform output -raw instance_ip 2>/dev/null | tr -d '\n')
+          echo "EC2 IP: $EC2_IP"
+          if [ -z "$EC2_IP" ]; then
+          echo "Erro: Não foi possível encontrar o IP público da instância EC2"
+          exit 1
+          fi
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
       # Step 7: Verificar se a instância EC2 está acessível
       - name: Wait for EC2 to be accessible
         run: |
