@@ -37,11 +37,12 @@ jobs:
         run: terraform apply -auto-approve
 
       # Step 6: Obter o IP público da instância EC2
-      - name: Get EC2 Public IP
+      - name: Get EC2 instance IP
         id: ec2_ip
         run: |
-          EC2_IP=$(terraform output -raw instance_ip)
-          echo "::set-output name=ip::${EC2_IP}"
+          IP=$(terraform output -raw instance_ip)
+          echo "EC2 IP: $IP"
+          echo "::set-output name=ec2_ip::$IP"
           
       # Step 7: Criar arquivo de chave privada para SSH
       - name: Set up SSH private key
