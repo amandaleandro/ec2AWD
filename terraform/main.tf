@@ -103,12 +103,15 @@ resource "aws_instance" "ec2_instance" {
   # Provisionamento remoto com curl
   provisioner "remote-exec" {
     inline = [
+      "set -e",   
+      "set -x",   
       "echo 'Atualizando pacotes...'",
       "sudo apt-get update -y",
 
       "echo 'Instalando curl...'",
       "sudo apt-get install -y curl",
-
+      "sudo apt-get update",
+      "sudo apt-get install -y docker.io",
       "echo 'Criando diretório /home/ubuntu/app...'",
       "mkdir -p /home/ubuntu/app",
 
