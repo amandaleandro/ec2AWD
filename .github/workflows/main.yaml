@@ -1,4 +1,4 @@
-name: Deploy EC2 Application
+name: Terraform EC2 Deploy
 
 on:
   push:
@@ -6,41 +6,55 @@ on:
       - main
 
 jobs:
-  deploy:
+  terraform-deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
+      # Step 1: Checkout o repositório
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Configure AWS CLI (Skip installation)
-      run: |
-        aws --version  # Verifique se a AWS CLI já está instalada e sua versão
-        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws configure set region us-east-1
+      # Step 2: Configurar as credenciais da AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Create EC2 instance
-      run: |
-        aws ec2 run-instances \
-          --image-id ami-0ac80df6eff0e70b5 \  # Substitua pela ID correta da AMI
-          --count 1 \
-          --instance-type t2.micro \
-          --key-name minha-chave-ec2 \
-          --security-group-ids sg-xxxxxxxx \  # Substitua pelo ID do seu Security Group
-          --subnet-id subnet-xxxxxxxx \  # Substitua pelo ID da sua Subnet
-          --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=MinhaInstanciaEC2}]'
+      # Step 3: Instalar o Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
 
-    - name: Get EC2 instance public IP
-      id: get-ip
-      run: |
-        INSTANCE_ID=$(aws ec2 describe-instances --query 'Reservations[0].Instances[0].InstanceId' --output text)
-        PUBLIC_IP=$(aws ec2 describe-instances --instance-id $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-        echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+      # Step 4: Inicializar o Terraform
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
 
-    - name: Deploy to EC2 instance
-      run: |
-        # Conectando via SSH e executando os comandos de deploy
-        ssh -i minha-chave-ec2.pem ubuntu@$PUBLIC_IP << 'EOF'
+      # Step 5: Rodar o Terraform Apply para criar a instância EC2
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+
+      # Step 6: Obter o IP público da instância EC2
+      - name: Get EC2 Public IP
+        id: ec2_ip
+        run: |
+          EC2_IP=$(terraform output -raw instance_ip)
+          echo "::set-output name=ip::${EC2_IP}"
+          
+      # Step 7: Criar arquivo de chave privada para SSH
+      - name: Set up SSH private key
+        run: |
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      # Step 8: Deploy da aplicação no EC2 via SSH
+      - name: Deploy Python app on EC2
+        run: |
+          echo "Conectando no EC2 com o IP: ${{ steps.ec2_ip.outputs.ip }}"
+          # Conectar via SSH usando a chave privada
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ steps.ec2_ip.outputs.ip }} << 'EOF'
             echo "Iniciando deploy..."
             sudo apt-get update
             sudo apt-get install -y docker.io
@@ -49,4 +63,7 @@ jobs:
             sudo docker build -t my-python-app .
             sudo docker run -d -p 5000:5000 my-python-app
             echo "Deploy concluído"
-        EOF
+          EOF
+      # Step 9: Limpar chave privada após o deploy
+      - name: Clean up private key
+        run: rm -f private_key.pem
