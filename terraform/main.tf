@@ -141,5 +141,5 @@ resource "aws_instance" "ec2_instance" {
 
 # Output para obter o IP público da instância EC2
 output "instance_ip" {
-  value = aws_instance.ec2_instance.public_ip 
+  value = aws_instance.your_instance_name.public_ip
 }
