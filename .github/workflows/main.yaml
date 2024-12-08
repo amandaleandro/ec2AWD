@@ -57,17 +57,21 @@ jobs:
           done
 
       # Step 8: SSH into EC2 and deploy
-      - name: SSH into EC2 and deploy
+      - name: Add SSH private key
         run: |
             echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
-            chmod 600 private_key.pem
+             chmod 600 private_key.pem
+      - name: SSH into EC2 and deploy
+        run: |
+            echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
             ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
-              echo "Iniciando deploy..."
-              sudo apt-get update
-              sudo apt-get install -y docker.io
-              sudo docker --version
-              cd /home/ubuntu/app
-              sudo docker build -t my-python-app .
-              sudo docker run -d -p 5000:5000 my-python-app
-              echo "Deploy concluído"
-            EOF
+                echo "Iniciando deploy..."
+                sudo apt-get update
+                sudo apt-get install -y docker.io
+                sudo docker --version
+                cd /home/ubuntu/app
+                 sudo docker build -t my-python-app .
+                 sudo docker run -d -p 5000:5000 my-python-app
+                 echo "Deploy concluído"
+               EOF
+           
