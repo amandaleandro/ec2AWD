@@ -1,4 +1,5 @@
-name: Terraform EC2 Setup and Deploy
+
+name: Terraform EC2 Deploy
 
 on:
   push:
@@ -6,88 +7,62 @@ on:
       - main
 
 jobs:
-  deploy:
+  terraform-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      # Step 1: Checkout o repositório
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v1
+      # Step 2: Configurar as credenciais da AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Terraform Init
-      run: terraform init
-      env:
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_REGION: us-east-1
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # Step 3: Instalar o Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
-      env:
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_REGION: us-east-1
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # Step 4: Inicializar o Terraform
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
 
-    - name: Capture EC2 Public IP
-      run: |
-        EC2_IP=$(terraform output -raw instance_ip)
-        echo "EC2_IP captured: $EC2_IP"
-        if [[ -z "$EC2_IP" ]]; then
-          echo "Erro: IP da instância EC2 não encontrado"
-          exit 1
-        fi
-        echo "$EC2_IP" > $GITHUB_WORKSPACE/ec2_ip.txt
-      env:
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_REGION: us-east-1
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # Step 5: Rodar o Terraform Apply para criar a instância EC2
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
 
-    - name: Read EC2 IP from File
-      run: |
-        if [[ ! -f "$GITHUB_WORKSPACE/ec2_ip.txt" ]]; then
-          echo "Erro: Arquivo ec2_ip.txt não encontrado"
-          exit 1
-        fi
-        EC2_IP=$(cat $GITHUB_WORKSPACE/ec2_ip.txt)
-        echo "::set-output name=ec2_ip::$EC2_IP"
-      env:
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_REGION: us-east-1
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-    - name: SSH into EC2 and Deploy Application
-      run: |
-        echo "Deploying application to EC2 instance..."
-        ssh -o StrictHostKeyChecking=no -i deployer-key.pem ubuntu@$EC2_IP << 'EOF'
-          set -e
-          echo "Updating instance..."
-          sudo apt-get update -y
-          sudo apt-get install -y docker.io
-          
-          echo "Creating app directory..."
-          mkdir -p /home/ubuntu/app
-          
-          echo "Downloading application files from S3..."
-          curl -o /home/ubuntu/app/requirements.txt https://s3.us-east-1.amazonaws.com/YOUR_BUCKET/requirements.txt
-          curl -o /home/ubuntu/app/app.py https://s3.us-east-1.amazonaws.com/YOUR_BUCKET/app.py
-          curl -o /home/ubuntu/app/Dockerfile https://s3.us-east-1.amazonaws.com/YOUR_BUCKET/Dockerfile
-          
-          echo "Building Docker image..."
-          cd /home/ubuntu/app
-          sudo docker build -t myapp .
-          
-          echo "Running Docker container..."
-          sudo docker run -d -p 80:80 myapp
-        EOF
-      env:
-        AWS_DEFAULT_REGION: us-east-1
-        AWS_REGION: us-east-1
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        
+      # Step 6: Obter o IP público da instância EC2 corretamente
+      - name: Get EC2 Public IP
+        id: get_ip
+        working-directory: ./terraform
+        run: |
+          EC2_IP=$(terraform output -raw instance_ip)
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+      # Step 7: Configurar SSH para conexão na EC2
+      - name: Setup SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ./ec2-key.pem
+          chmod 600 ./ec2-key.pem
+      # Step 8: Copiar arquivos da aplicação para a EC2
+      - name: Copy files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i ./ec2-key.pem -r ./src/ ubuntu@$EC2_IP:/home/ubuntu/app/
+      # Step 9: Executar o setup na EC2 e rodar a aplicação
+      - name: Run setup on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ./ec2-key.pem ubuntu@$EC2_IP << 'EOF'
+            echo "Instalando dependências..."
+            sudo apt-get update
+            sudo apt-get install -y python3 python3-pip docker.io
+            echo "Subindo aplicação via Docker..."
+            cd /home/ubuntu/app
+            sudo docker build -t myapp .
+            sudo docker run -d -p 80:80 myapp
+            echo "Aplicação está rodando"
+          EOF
