@@ -41,9 +41,13 @@ jobs:
         id: get_ip
         working-directory: ./terraform
         run: |
-          EC2_IP=$(terraform output -raw instance_ip)
+          EC2_IP=$(terraform output -raw instance_ip 2>/dev/null | tr -d '\n')
           echo "EC2 IP: $EC2_IP"
-          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV  # Armazena o IP na variável de ambiente para uso posterior
+          if [ -z "$EC2_IP" ]; then
+          echo "Erro: Não foi possível encontrar o IP público da instância EC2"
+          exit 1
+          fi
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
 
       # Step 7: Deploy Python app na instância EC2
       - name: Deploy Python app on EC2
