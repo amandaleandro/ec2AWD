@@ -38,7 +38,7 @@ resource "aws_s3_bucket" "my_bucket" {
   acl    = "private"
 }
 
-# Subir o arquivo requirements.txt para o bucket S3
+# Subir os arquivos para o bucket S3
 resource "aws_s3_bucket_object" "requirements_txt" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "requirements.txt"
@@ -46,7 +46,6 @@ resource "aws_s3_bucket_object" "requirements_txt" {
   acl    = "private"
 }
 
-# Subir o arquivo app.py para o bucket S3
 resource "aws_s3_bucket_object" "app_py" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "app.py"
@@ -54,7 +53,6 @@ resource "aws_s3_bucket_object" "app_py" {
   acl    = "private"
 }
 
-# Subir o Dockerfile para o bucket S3
 resource "aws_s3_bucket_object" "dockerfile" {
   bucket = aws_s3_bucket.my_bucket.bucket
   key    = "Dockerfile"
@@ -70,7 +68,7 @@ resource "tls_private_key" "example" {
 
 # Criar o par de chaves na AWS
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key${random_string.suffix.result}"
+  key_name   = "deployer-key-${random_string.suffix.result}"
   public_key = tls_private_key.example.public_key_openssh
 }
 
@@ -93,12 +91,12 @@ resource "aws_security_group" "allow_ssh" {
 
 # Criar Instância EC2
 resource "aws_instance" "ec2_instance" {
-  ami                    = "ami-0ac80df6eff0e70b5"
+  ami                    = "ami-0ac80df6eff0e70b5" # Substitua com a AMI correta
   instance_type          = "t2.nano"
   key_name               = aws_key_pair.deployer.key_name
   security_groups        = [aws_security_group.allow_ssh.name]
   associate_public_ip_address = true
-  iam_instance_profile    = aws_iam_instance_profile.ec2_instance_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
 
   # Provisionamento remoto com curl
   provisioner "remote-exec" {
