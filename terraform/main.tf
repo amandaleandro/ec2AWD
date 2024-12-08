@@ -26,6 +26,28 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
+# Criar a política para acessar o bucket S3
+resource "aws_iam_policy" "s3_access_policy" {
+  name        = "s3_access_policy"
+  description = "Policy granting access to S3 bucket"
+  policy      = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "s3:GetObject",
+        "Resource": "arn:aws:s3:::${aws_s3_bucket.my_bucket.bucket}/*"
+      }
+    ]
+  })
+}
+
+# Anexar a política ao role da EC2
+resource "aws_iam_role_policy_attachment" "s3_access" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.s3_access_policy.arn
+}
+
 # Criar o perfil IAM (IAM Instance Profile)
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "ec2_instance_profile_${random_string.suffix.result}"
@@ -68,8 +90,8 @@ resource "tls_private_key" "example" {
 
 # Salvar a chave privada localmente
 resource "local_file" "ssh_private_key" {
-  filename = "${path.module}/deployer-key-${random_string.suffix.result}.pem"
-  content  = tls_private_key.example.private_key_pem
+  filename      = "${path.module}/deployer-key-${random_string.suffix.result}.pem"
+  content       = tls_private_key.example.private_key_pem
   file_permission = "0600"  # Permissões adequadas para a chave privada
 }
 
