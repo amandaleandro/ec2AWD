@@ -43,7 +43,10 @@ jobs:
           IP=$(terraform output -raw instance_ip)
           echo "EC2 IP: $IP"
           echo "::set-output name=ec2_ip::$IP"
-          
+      - name: Verificar IP da instância EC2
+        run: |
+            echo "Valor da variável EC2_IP: ${{ env.EC2_IP }}"
+        
       - name: SSH into EC2 and deploy
         run: |
             echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
