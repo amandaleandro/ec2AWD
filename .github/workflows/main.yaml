@@ -54,7 +54,7 @@ jobs:
           exit 1
         fi
         EC2_IP=$(cat $GITHUB_WORKSPACE/ec2_ip.txt)
-        echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+        echo "::set-output name=ec2_ip::$EC2_IP"
       env:
         AWS_DEFAULT_REGION: us-east-1
         AWS_REGION: us-east-1
@@ -90,4 +90,4 @@ jobs:
         AWS_REGION: us-east-1
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        EC2_IP: ${{ env.EC2_IP }}
+        
