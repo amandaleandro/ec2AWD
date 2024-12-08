@@ -43,7 +43,7 @@ jobs:
           IP=$(terraform output -raw instance_ip)
           echo "EC2 IP: $IP"
           echo "EC2_IP=$IP" >> $GITHUB_ENV
-
+  
       # Step 7: Verificar se a instância EC2 está acessível
       - name: Wait for EC2 to be accessible
         run: |
@@ -55,7 +55,6 @@ jobs:
       # Step 8: SSH into EC2 and deploy
       - name: SSH into EC2 and deploy
         run: |
-            echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
             echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
             chmod 600 private_key.pem
             ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
