@@ -34,14 +34,8 @@ jobs:
       # Step 5: Rodar o Terraform Apply para criar a instância EC2
       - name: Terraform Apply
         working-directory: ./terraform
-        run: |
-          terraform init
-          terraform apply -auto-approve
-          sleep 30 
+        run: terraform apply -auto-approve
       
-      - name: Verificar se a saída da instância EC2 está sendo gerada
-        run: |
-          terraform output -raw instance_ip
       # Step 6: Obter o IP público da instância EC2
       - name: Get EC2 instance IP
         id: ec2_ip
@@ -49,15 +43,20 @@ jobs:
           IP=$(terraform output -raw instance_ip)
           echo "EC2 IP: $IP"
           echo "EC2_IP=$IP" >> $GITHUB_ENV
-    
-      - name: Verificar IP da instância EC2
+
+      # Step 7: Verificar se a instância EC2 está acessível
+      - name: Wait for EC2 to be accessible
         run: |
-            echo "Valor da variável EC2_IP: ${{ env.EC2_IP }}"
-        
+          until ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.EC2_IP }} "echo EC2 is accessible"; do
+            echo "Aguardando a instância EC2 ficar acessível..."
+            sleep 30
+          done
+
+      # Step 8: SSH into EC2 and deploy
       - name: SSH into EC2 and deploy
         run: |
             echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
-            echo "" > private_key.pem
+            echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
             chmod 600 private_key.pem
             ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
               echo "Iniciando deploy..."
