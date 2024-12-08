@@ -36,26 +36,32 @@ jobs:
         working-directory: ./terraform
         run: terraform apply -auto-approve
 
-      # Step 6: Obter o IP público da instância EC2 corretamente
+      # Step 6: Obter o IP público da instância EC2 e gravar em um arquivo temporário
       - name: Get EC2 Public IP
         id: get_ip
-        working-directory: ./terraform
         run: |
           EC2_IP=$(terraform output -raw instance_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+          echo "$EC2_IP" > ec2_ip.txt
+
+      # Step 7: Ler o IP da instância EC2 do arquivo
+      - name: Read EC2 IP
+        id: read_ip
+        run: |
+          EC2_IP=$(cat ec2_ip.txt)
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
 
-      # Step 7: Configurar SSH para conexão na EC2
+      # Step 8: Configurar SSH para conexão na EC2
       - name: Setup SSH Key
         run: |
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ./ec2-key.pem
           chmod 600 ./ec2-key.pem
 
-      # Step 8: Copiar arquivos da aplicação para a EC2
+      # Step 9: Copiar arquivos da aplicação para a EC2
       - name: Copy files to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i ./ec2-key.pem -r ./src/ ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app/
 
-      # Step 9: Executar o setup na EC2 e rodar a aplicação
+      # Step 10: Executar o setup na EC2 e rodar a aplicação
       - name: Run setup on EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i ./ec2-key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
