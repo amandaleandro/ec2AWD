@@ -40,12 +40,13 @@ jobs:
       - name: Get EC2 Public IP
         id: get_ip
         run: |
-          EC2_IP=$(terraform output -raw instance_ip)
-          if [[ -z "$EC2_IP" ]]; then
-          echo "Erro: IP da instância EC2 não encontrado"
-          exit 1
-          fi
-          echo "$EC2_IP" > ec2_ip.txt
+            EC2_IP=$(terraform output -raw instance_ip)
+            if [[ -z "$EC2_IP" ]]; then
+            echo "Erro: IP da instância EC2 não encontrado"
+              exit 1
+              fi
+              echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+    
 
       # Step 7: Ler o IP da instância EC2 do arquivo
       - name: Read EC2 IP
