@@ -44,27 +44,18 @@ jobs:
           echo "EC2 IP: $IP"
           echo "::set-output name=ec2_ip::$IP"
           
-      # Step 7: Criar arquivo de chave privada para SSH
-      - name: Set up SSH private key
+      - name: SSH into EC2 and deploy
         run: |
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
-
-      # Step 8: Deploy da aplicação no EC2 via SSH
-      - name: Deploy Python app on EC2
-        run: |
-          echo "Conectando no EC2 com o IP: ${{ steps.ec2_ip.outputs.ip }}"
-          # Conectar via SSH usando a chave privada
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ steps.ec2_ip.outputs.ip }} << 'EOF'
-            echo "Iniciando deploy..."
-            sudo apt-get update
-            sudo apt-get install -y docker.io
-            sudo docker --version
-            cd /home/ubuntu/app
-            sudo docker build -t my-python-app .
-            sudo docker run -d -p 5000:5000 my-python-app
-            echo "Deploy concluído"
-          EOF
-      # Step 9: Limpar chave privada após o deploy
-      - name: Clean up private key
-        run: rm -f private_key.pem
+            echo "Conectando no EC2 com o IP: ${{ env.EC2_IP }}"
+            echo "" > private_key.pem
+            chmod 600 private_key.pem
+            ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
+              echo "Iniciando deploy..."
+              sudo apt-get update
+              sudo apt-get install -y docker.io
+              sudo docker --version
+              cd /home/ubuntu/app
+              sudo docker build -t my-python-app .
+              sudo docker run -d -p 5000:5000 my-python-app
+              echo "Deploy concluído"
+            EOF
