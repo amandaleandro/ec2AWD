@@ -34,15 +34,22 @@ jobs:
       # Step 5: Rodar o Terraform Apply para criar a instância EC2
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply -auto-approve
-
+        run: |
+          terraform init
+          terraform apply -auto-approve
+          sleep 30 
+      
+      - name: Verificar se a saída da instância EC2 está sendo gerada
+        run: |
+          terraform output -raw instance_ip
       # Step 6: Obter o IP público da instância EC2
       - name: Get EC2 instance IP
         id: ec2_ip
         run: |
           IP=$(terraform output -raw instance_ip)
           echo "EC2 IP: $IP"
-          echo "::set-output name=ec2_ip::$IP"
+          echo "EC2_IP=$IP" >> $GITHUB_ENV
+    
       - name: Verificar IP da instância EC2
         run: |
             echo "Valor da variável EC2_IP: ${{ env.EC2_IP }}"
