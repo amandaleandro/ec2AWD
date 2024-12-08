@@ -114,9 +114,10 @@ resource "aws_instance" "ec2_instance" {
       "mkdir -p /home/ubuntu/app",
 
       "echo 'Baixando arquivos do S3...'",
-      "curl -o /home/ubuntu/app/requirements.txt https://s3.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/requirements.txt",
-      "curl -o /home/ubuntu/app/app.py https://s3.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/app.py",
-      "curl -o /home/ubuntu/app/Dockerfile https://s3.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/Dockerfile"
+      "curl -o /home/ubuntu/app/requirements.txt https://s3.us-east-1.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/requirements.txt",
+      "curl -o /home/ubuntu/app/app.py https://s3.us-east-1.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/app.py",
+      "curl -o /home/ubuntu/app/Dockerfile https://s3.us-east-1.amazonaws.com/${aws_s3_bucket.my_bucket.bucket}/Dockerfile"
+
     ]
 
     connection {
@@ -134,5 +135,5 @@ resource "aws_instance" "ec2_instance" {
 
 # Output para obter o IP público da instância EC2
 output "instance_ip" {
-  value = aws_instance.ec2_instance.public_ip
+  value = aws_instance.ec2_instance.public_ip # IP público da instância
 }
