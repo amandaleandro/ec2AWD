@@ -171,10 +171,3 @@ Contribuições são bem-vindas! Se você encontrar algum problema ou tiver suge
 
 Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 ```
-
-### Alterações feitas:
-1. **Estrutura da aplicação**: A seção agora inclui informações detalhadas sobre os arquivos da aplicação Python (`app.py`, `Dockerfile`, `requirements.txt`).
-2. **Rodando a aplicação localmente**: Explicação sobre como construir e rodar a aplicação Python localmente com Docker.
-3. **Pipeline de Deploy**: Detalhes sobre como o GitHub Actions agora cuida do deploy da aplicação Python na instância EC2, incluindo a execução do script de deploy para configurar e rodar o Docker com a aplicação.
-
-Essa versão do README agora reflete o processo completo, incluindo o código da aplicação Python e os passos para o deploy automatizado na instância EC2.
